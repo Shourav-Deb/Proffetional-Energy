@@ -26,62 +26,158 @@ from schedules import (
 # ------------------------------------------------------------------------------------
 # Page setup
 
-st.set_page_config(page_title="FUB Smart Energy Board", layout="wide")
+st.set_page_config(
+    page_title="FUB Smart BEMS",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
 DATA_DIR = Path("data")
 
-# Global styles (premium-ish)
+# Global styles (new premium layout)
 st.markdown(
     """
     <style>
+    :root {
+        --accent: #22c55e;
+        --accent-soft: rgba(34,197,94,0.16);
+        --bg-main: #020617;
+        --bg-elevated: rgba(15,23,42,0.96);
+        --border-subtle: rgba(148,163,184,0.18);
+    }
+
+    body {
+        background: radial-gradient(circle at top, #111827 0, #020617 40%, #020617 100%);
+    }
+
     .main .block-container {
-        padding-top: 1.2rem;
+        padding-top: 0.5rem;
         padding-bottom: 1.5rem;
         max-width: 1200px;
     }
+
+    .top-shell {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 0.3rem 0.9rem;
+        border-radius: 1rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+    }
+
+    .logo-dot {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 30% 20%, #22c55e, #16a34a, #15803d);
+        box-shadow: 0 0 18px rgba(34,197,94,0.5);
+    }
+
+    .app-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+    }
+
+    .app-subtitle {
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+
+    .top-tagline {
+        font-size: 0.82rem;
+        color: #9ca3af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15,23,42,0.9);
+    }
+
     .big-title {
-        font-size: 2.3rem;
-        font-weight: 750;
+        font-size: 1.5rem;
+        font-weight: 650;
         margin-bottom: 0.1rem;
     }
+
     .subtitle {
         color: #9ca3af;
-        font-size: 0.95rem;
-        margin-bottom: 1.5rem;
-    }
-    .card {
-        padding: 1rem 1.2rem;
-        border-radius: 0.85rem;
-        background: #020617;
-        border: 1px solid #1f2937;
-    }
-    .card h3 {
         font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #9ca3af;
-        margin-bottom: 0.35rem;
+        margin-bottom: 1.2rem;
     }
+
+    .card {
+        padding: 0.9rem 1.1rem;
+        border-radius: 1rem;
+        background: linear-gradient(
+            135deg,
+            rgba(15,23,42,0.98),
+            rgba(15,23,42,0.9)
+        );
+        border: 1px solid var(--border-subtle);
+        box-shadow:
+            0 18px 40px rgba(15,23,42,0.8),
+            0 0 0 1px rgba(15,23,42,0.4);
+    }
+
+    .card h3 {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        color: #9ca3af;
+        margin-bottom: 0.2rem;
+    }
+
     .card .value {
-        font-size: 1.3rem;
+        font-size: 1.35rem;
         font-weight: 650;
     }
+
     .pill {
         display: inline-flex;
         align-items: center;
-        padding: 0.2rem 0.55rem;
+        padding: 0.2rem 0.7rem;
         border-radius: 999px;
-        border: 1px solid #1f2937;
-        font-size: 0.76rem;
+        border: 1px solid var(--border-subtle);
+        font-size: 0.78rem;
         color: #9ca3af;
         gap: 0.4rem;
+        background: rgba(15,23,42,0.9);
     }
+
     .floor-badge {
         font-size: 0.8rem;
-        padding: 0.15rem 0.5rem;
+        padding: 0.15rem 0.65rem;
         border-radius: 999px;
-        background: #0f172a;
-        border: 1px solid #1f2937;
+        background: rgba(15,23,42,0.96);
+        border: 1px solid var(--border-subtle);
         color: #9ca3af;
+    }
+
+    .stButton>button {
+        border-radius: 999px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15,23,42,0.95);
+        color: #e5e7eb;
+        font-size: 0.85rem;
+        padding: 0.25rem 0.9rem;
+    }
+    .stButton>button:hover {
+        border-color: rgba(34,197,94,0.7);
+        box-shadow: 0 0 0 1px rgba(34,197,94,0.4);
+    }
+
+    .top-nav-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: #6b7280;
+        margin-bottom: 0.1rem;
     }
     </style>
     """,
@@ -98,17 +194,20 @@ if "current_device_name" not in st.session_state:
 
 
 def go(page: str):
+    """Programmatic navigation to a main page."""
     st.session_state.page = page
+    # We let the next rerun render the new page
 
 
 def go_device(device_id: str, device_name: str):
+    """Go to per-device dashboard."""
     st.session_state.current_device_id = device_id
     st.session_state.current_device_name = device_name
     st.session_state.page = "device_detail"
 
 
 # ------------------------------------------------------------------------------------
-# Sidebar: navigation + Mongo status
+# Sidebar: system status (no navigation here anymore)
 
 # Mongo health check
 try:
@@ -121,73 +220,69 @@ else:
     mongo_err = ""
 
 with st.sidebar:
-    st.markdown("### 🧭 Navigation")
-
-    options = [
-        "🏠 Overview",
-        "📂 Devices",
-        "➕ Add Device",
-        "⚙️ Manage Devices",
-        "📈 Reports",
-        "📘 Help / User Manual",
-    ]
-    label_to_page = {
-        "🏠 Overview": "home",
-        "📂 Devices": "devices",
-        "➕ Add Device": "add_device",
-        "⚙️ Manage Devices": "manage_devices",
-        "📈 Reports": "reports",
-        "📘 Help / User Manual": "help",
-    }
-    page_to_label = {v: k for k, v in label_to_page.items()}
-
-    current_page = st.session_state.page
-    if current_page in page_to_label:
-        default_label = page_to_label[current_page]
-    else:
-        default_label = "🏠 Overview"
-
-    # What was selected before this rerun?
-    prev_choice = st.session_state.get("nav_choice", default_label)
-
-    # Radio sets the *new* choice
-    choice = st.radio(
-        "",
-        options,
-        index=options.index(prev_choice),
-        key="nav_choice",
-    )
-
-    # Did the user actually click a different sidebar item?
-    user_clicked_sidebar = (choice != prev_choice)
-
-    if user_clicked_sidebar:
-        # User explicitly chose a new page -> always go there
-        st.session_state.page = label_to_page[choice]
-    else:
-        # User did not change sidebar; keep device_detail if we're on it
-        if st.session_state.page not in label_to_page.values():
-            # e.g., 'device_detail' -> do nothing, stay here
-            pass
-        else:
-            # For normal pages, keep page in sync with sidebar
-            st.session_state.page = label_to_page[choice]
-
-    st.markdown("---")
-    st.markdown("### 🗄️ Data backend")
+    st.markdown("### System status")
     st.write("Mongo URI set:", bool(MONGODB_URI))
     st.write("Connected:", mongo_ok)
     if not mongo_ok:
         st.caption("Check MONGODB_URI in secrets / .env")
     st.markdown("---")
-    st.caption("FUB Building Energy Management Demo")
-
-
+    st.caption("FUB BEMS · Realtime Tuya + MongoDB")
 
 # ------------------------------------------------------------------------------------
-# Soft scheduler (runs every app reload)
+# Soft scheduler (runs each app reload)
 
 run_due_schedules()
+
+# ------------------------------------------------------------------------------------
+# Top header + navigation (new UI, replaces sidebar nav)
+
+def render_top_nav():
+    # Header with logo + tagline
+    st.markdown(
+        """
+        <div class="top-shell">
+          <div class="app-brand">
+            <div class="logo-dot"></div>
+            <div>
+              <div class="app-title">FUB Smart BEMS</div>
+              <div class="app-subtitle">Realtime plug-level energy · Bangladesh billing · Floor aggregation</div>
+            </div>
+          </div>
+          <div class="top-tagline">
+            Live Tuya data → MongoDB → Analytics dashboard
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="top-nav-label">MAIN SECTIONS</div>', unsafe_allow_html=True)
+
+    cols = st.columns([1, 1, 1, 1, 1, 2])
+    nav_items = [
+        ("home", "Overview"),
+        ("devices", "Devices"),
+        ("add_device", "Add device"),
+        ("manage_devices", "Manage"),
+        ("reports", "Analytics"),
+        # last col reserved for Help in a different row
+    ]
+    current = st.session_state.get("page", "home")
+
+    for idx, (page_key, label) in enumerate(nav_items):
+        is_active = (current == page_key) or (current == "device_detail" and page_key == "devices")
+        btn_label = f"● {label}" if is_active else label
+        with cols[idx]:
+            if st.button(btn_label, key=f"topnav_{page_key}"):
+                go(page_key)
+                st.rerun()
+
+    # Help button aligned right
+    with cols[-1]:
+        if st.button("Help / Manual", key="topnav_help"):
+            go("help")
+            st.rerun()
+
 
 # ------------------------------------------------------------------------------------
 # Pages
@@ -195,18 +290,17 @@ run_due_schedules()
 def home_page():
     devices = load_devices()
 
-    st.markdown('<div class="big-title">FUB Energy Command Center ⚡</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title">Building overview</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="subtitle">Real-time and historical energy view for the FUB building, '
-        'with Bangladesh billing and floor-level aggregation.</div>',
+        '<div class="subtitle">Live status and historical profile of the FUB building with Bangladesh billing.</div>',
         unsafe_allow_html=True,
     )
 
     if not devices:
-        st.info("No devices yet. Use **Add Device** from the left sidebar to register at least one Tuya plug.")
+        st.info("No devices yet. Use **Add device** from the top navigation to register at least one Tuya plug.")
         return
 
-    tabs = st.tabs(["Today (Live)", "History by Day"])
+    tabs = st.tabs(["Today (live)", "History by day"])
 
     # -------------------- TODAY TAB --------------------
     with tabs[0]:
@@ -222,21 +316,21 @@ def home_page():
         c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown("<h3>Instant Load</h3>", unsafe_allow_html=True)
+            st.markdown("<h3>Instant load</h3>", unsafe_allow_html=True)
             st.markdown(f'<div class="value">{total_power_now:.1f} W</div>', unsafe_allow_html=True)
-            st.caption(f"Present voltage: {present_voltage:.1f} V")
+            st.caption(f"Max phase voltage: {present_voltage:.1f} V")
             st.markdown("</div>", unsafe_allow_html=True)
         with c2:
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown("<h3>Today (BD)</h3>", unsafe_allow_html=True)
+            st.markdown("<h3>Today (Bangladesh)</h3>", unsafe_allow_html=True)
             st.markdown(
                 f'<div class="value">{today_kwh:.3f} kWh</div>', unsafe_allow_html=True
             )
-            st.caption(f"Estimated bill today: **{today_bill:.2f} BDT** (BD residential slabs)")
+            st.caption(f"Estimated bill today: **{today_bill:.2f} BDT** (domestic slab)")
             st.markdown("</div>", unsafe_allow_html=True)
         with c3:
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown("<h3>This Month</h3>", unsafe_allow_html=True)
+            st.markdown("<h3>This month</h3>", unsafe_allow_html=True)
             st.markdown(
                 f'<div class="value">{month_kwh:.3f} kWh</div>',
                 unsafe_allow_html=True,
@@ -246,11 +340,11 @@ def home_page():
 
         st.markdown("")
 
-        # Floor aggregation tiles (4.4 floor/building aggregation)
-        st.markdown("#### Floor overview")
+        # Floor aggregation tiles
+        st.markdown("#### Floors summary")
         floors = group_devices_by_floor()
         if not floors:
-            st.caption("No floor metadata yet. Add building/floor in devices.json.")
+            st.caption("No floor metadata yet. Use device mapping (building/floor/room) to enable this.")
         else:
             for key, floor_devs in floors.items():
                 building, floor = key.split("-", 1)
@@ -262,28 +356,28 @@ def home_page():
                     f_month_kwh,
                     f_month_bill,
                 ) = aggregate_totals_all_devices(floor_devs)
-                with st.expander(f"Floor {floor} · {building}", expanded=False):
+                with st.expander(f"{building} · Floor {floor}", expanded=False):
                     fc1, fc2, fc3 = st.columns(3)
                     with fc1:
                         st.metric("Instant load", f"{f_power:.1f} W")
-                        st.caption(f"Present V: {f_voltage:.1f} V")
+                        st.caption(f"Voltage: {f_voltage:.1f} V")
                     with fc2:
                         st.metric("Today (kWh)", f"{f_today_kwh:.3f}")
-                        st.caption(f"Bill today: {f_today_bill:.2f} BDT")
+                        st.caption(f"Today bill: {f_today_bill:.2f} BDT")
                     with fc3:
-                        st.metric("This month (kWh)", f"{f_month_kwh:.3f}")
-                        st.caption(f"Month so far: {f_month_bill:.2f} BDT")
+                        st.metric("Month (kWh)", f"{f_month_kwh:.3f}")
+                        st.caption(f"Month bill: {f_month_bill:.2f} BDT")
 
         st.markdown("")
         col_l, col_r = st.columns([3, 1])
         with col_l:
-            st.markdown("#### Last 24 hours — Building profile")
+            st.markdown("#### Last 24 hours — building profile")
             ts = aggregate_timeseries_24h(devices, resample_rule="5T")
             if ts.empty:
                 st.info(
                     "No historical data in MongoDB yet.\n\n"
                     "- Open a device page and wait a few refreshes, or\n"
-                    "- Run `data_collector.py` locally/online."
+                    "- Run `data_collector.py`."
                 )
             else:
                 fig = px.line(
@@ -297,15 +391,15 @@ def home_page():
 
         with col_r:
             st.markdown("#### Quick actions")
-            if st.button("📂 Open devices list"):
+            if st.button("View devices list"):
                 go("devices")
                 st.rerun()
-            if st.button("➕ Add new plug"):
+            if st.button("Add new plug"):
                 go("add_device")
                 st.rerun()
             st.markdown("---")
             st.markdown(
-                '<span class="pill">Devices online: '
+                '<span class="pill">Connected plugs: '
                 f'{len(devices)}</span>',
                 unsafe_allow_html=True,
             )
@@ -318,7 +412,7 @@ def home_page():
             value=today,
             max_value=today,
         )
-        st.caption("Future dates are disabled; data is loaded from MongoDB for past days.")
+        st.caption("Future dates are disabled; past days load from MongoDB history.")
 
         h_ts = aggregate_timeseries_for_day(devices, hist_date, resample_rule="15T")
         if h_ts.empty:
@@ -336,15 +430,15 @@ def home_page():
 
 
 def devices_page():
-    st.markdown('<div class="big-title">All Connected Devices</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title">Devices</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="subtitle">Each card represents a Tuya smart plug mapped to a room in the FUB building.</div>',
+        '<div class="subtitle">Each card represents a Tuya smart plug mapped to a FUB room.</div>',
         unsafe_allow_html=True,
     )
 
     devs = load_devices()
     if not devs:
-        st.info("No devices found. Add one from **Add Device** in the sidebar.")
+        st.info("No devices found. Use **Add device** from the top navigation.")
         return
 
     for d in devs:
@@ -378,15 +472,15 @@ def devices_page():
 
 
 def add_device_page():
-    st.markdown('<div class="big-title">Add a New FUB Device</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title">Add device</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="subtitle">Register a Tuya plug by its device ID from the Tuya IoT Cloud console and map it to FUB floors/rooms.</div>',
+        '<div class="subtitle">Register a Tuya plug with its device ID and map it to the FUB building layout.</div>',
         unsafe_allow_html=True,
     )
 
     with st.form("add_device_form"):
         name = st.text_input("Friendly name (e.g., FUB 401 - Lab AC)")
-        device_id = st.text_input("Tuya Device ID")
+        device_id = st.text_input("Tuya device ID")
         building = st.text_input("Building code", value="FUB")
         floor = st.text_input("Floor (e.g., 4)")
         room = st.text_input("Room (e.g., 401)")
@@ -410,11 +504,11 @@ def add_device_page():
             )
             save_devices(devs)
             st.success("Device added successfully.")
-            st.info("Now open the **Devices** page and click into the device to start logging data.")
+            st.info("Now open **Devices** and click the new device to start logging data.")
 
 
 def manage_devices_page():
-    st.markdown('<div class="big-title">Manage Devices</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title">Manage devices</div>', unsafe_allow_html=True)
     devs = load_devices()
     if not devs:
         st.info("No devices to manage yet.")
@@ -441,11 +535,10 @@ def manage_devices_page():
 def _render_schedule_editor(device_id: str, dev_meta: dict):
     st.markdown("### Schedule control (auto ON/OFF)")
     st.caption(
-        "Create one-time or weekly schedules. The app checks these on every reload and "
-        "sends ON/OFF commands to Tuya automatically."
+        "Create one-time or weekly schedules. On each refresh, the app checks due schedules and "
+        "sends ON/OFF commands to the plug."
     )
 
-    # Existing schedules
     existing = list_schedules(device_id)
     if existing:
         st.markdown("#### Existing schedules")
@@ -549,7 +642,7 @@ def device_detail_page():
     except Exception as e:
         st.error(f"Tuya API error while logging data: {e}")
 
-    tabs = st.tabs(["Today (Live)", "History & Billing", "Schedules"])
+    tabs = st.tabs(["Today (live)", "History & billing", "Schedules"])
 
     # -------------------- TODAY TAB --------------------
     with tabs[0]:
@@ -584,7 +677,7 @@ def device_detail_page():
                     res = control_device(dev_id, token, "switch_1", False)
                     st.json(res)
 
-        st.markdown("### Recent Power (last 50 samples)")
+        st.markdown("### Recent power (last 50 samples)")
         df_recent = latest_docs(dev_id, n=50)
         if not df_recent.empty:
             fig = px.line(df_recent, x="timestamp", y="power", title="")
@@ -604,9 +697,9 @@ def device_detail_page():
         with b2:
             st.metric("This month (kWh)", f"{m_units:.3f}")
             st.metric("This month (BDT)", f"{m_cost:.2f}")
-        st.caption("Billing uses BD residential slab rates (EL-B-A).")
+        st.caption("Billing uses Bangladesh domestic slab rates (EL-B-A).")
 
-        st.markdown("### Historical analysis by date")
+        st.markdown("### Historical analysis by date range")
         c1, c2, c3 = st.columns(3)
         today = datetime.now().date()
         with c1:
@@ -647,32 +740,23 @@ def device_detail_page():
 
 
 def reports_page():
-    st.markdown('<div class="big-title">Reports & Aggregations</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title">Analytics & reports</div>', unsafe_allow_html=True)
     st.info(
-        "For a simple academic project, you can export data from MongoDB or use the per-device "
-        "and building charts. A CSV export button could be added here later if needed."
+        "This section is for high-level energy analytics and exporting data for reports. "
+        "You can extend this with CSV export, per-floor comparisons, or ML-based forecasts."
     )
 
 
 def help_page():
-    st.markdown('<div class="big-title">User Manual — FUB BEMS Dashboard</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title">User manual — FUB BEMS</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
-        ### 1. Overview
+        ### 1. What this system does
 
-        This dashboard is a Building Energy Management System (BEMS) prototype for EWU's FUB building.\
-        It reads real-time power data from Tuya smart plugs, stores it in MongoDB, and calculates\
-        energy and bills using the official Bangladesh electricity tariffs (residential domestic slabs).
-
-        The system supports:
-
-        - Building & floor-level aggregation  
-        - Room/device-level real-time monitoring  
-        - Bangladesh tariff-based billing (kWh → BDT)  
-        - Manual ON/OFF control of plugs  
-        - Scheduled ON/OFF (once or weekly)  
-        - Historical analysis per day and custom ranges  
+        This dashboard is a Building Energy Management System (BEMS) prototype for the FUB building.  
+        It reads real-time power data from Tuya smart plugs, stores it in MongoDB, and calculates energy
+        and bills using Bangladesh electricity tariffs (domestic slabs).
 
         **Knowledge contact:** `heyneeddev@gmail.com`
         """
@@ -680,111 +764,55 @@ def help_page():
 
     st.markdown(
         """
-        ### 2. Pages
+        ### 2. Main sections
 
-        **🏠 Overview (Building dashboard)**  
-        - Shows building totals for:
-          - Instant power (W)
-          - Today's kWh and bill (BDT)
-          - This month's kWh and bill (BDT)
-        - Displays floor-wise cards (FUB Floor 4, Floor 5, etc.) with the same metrics.
-        - Provides:
-          - **Today (Live)** tab → last 24h power & voltage line chart.
-          - **History by Day** tab → choose any past date (calendar) and view the aggregated profile.
+        **Overview**  
+        - Shows building total power, energy and bills (today + month).
+        - Floor-wise summaries (if devices are mapped with building/floor/room).
+        - Live 24h chart and per-day history.
 
-        **📂 Devices**  
-        - Lists all Tuya devices (one per room), including:
-          - Device name
-          - Tuya device ID
-          - Building, floor, room mapping
-          - Last known power/voltage
-        - Use **Open dashboard** on any device to see its detail page.
+        **Devices**  
+        - List of all Tuya plugs with building/floor/room mapping.
+        - Last known power and voltage.
+        - Open per-device dashboard for room-level analysis.
 
-        **➕ Add Device**  
-        - Register a new Tuya plug with:
-          - Friendly name
-          - Device ID
-          - Building/floor/room
-          - Optional room capacity
-        - After adding, the device appears in **Devices**.
+        **Add device / Manage**  
+        - Register new plugs and map them to FUB rooms.
+        - Remove or clean up devices.
 
-        **⚙️ Manage Devices**  
-        - See all registered devices and remove entries that are no longer needed.
+        **Analytics**  
+        - Placeholder for future advanced reports and exports.
 
-        **📈 Reports**  
-        - Placeholder for future CSV exports, room/floor comparison charts, etc.
-        - For now, use device history and building history tabs.
-
-        **📘 Help / User Manual**  
-        - You are here. This explains how to use the dashboard and who to contact.
+        **Device dashboard (from Devices → Open dashboard)**  
+        - **Today (live)**: latest power/voltage/current and recent power chart.  
+        - **History & billing**: energy and BDT cost for today & this month, date-range chart.  
+        - **Schedules**: configure one-time or weekly ON/OFF schedules.
         """
     )
 
     st.markdown(
         """
-        ### 3. Device detail page (room-level)
+        ### 3. Data and billing model
 
-        On the device page you have three tabs:
-
-        **Today (Live)**  
-        - Shows live snapshot of:
-          - Power (W)
-          - Voltage (V)
-          - Current (A)
-        - Live ON/OFF buttons send commands to the Tuya plug.
-        - A chart of the last 50 readings visualises recent power behaviour.
-
-        **History & Billing**  
-        - Shows:
-          - Today's kWh and cost (BDT)
-          - This month's kWh and cost (BDT)
-        - Billing uses Bangladesh domestic slabs.
-        - Historical analysis lets you:
-          - Pick **start** and **end** dates (up to today; future dates disabled).
-          - Choose aggregation step (raw / 1min / 5min / 15min).
-          - View charts and raw table for reports.
-
-        **Schedules**  
-        - View existing schedules (once or weekly).
-        - For each schedule you can:
-          - Enable/disable (Active checkbox)
-          - Delete (🗑 button)
-        - Create new schedules:
-          - **Type**: One-time or weekly
-          - **Action**: Turn ON or Turn OFF
-          - **Time**: Time of day in Dhaka time
-          - **Date** (for one-time) or **weekdays** (for weekly)
-
-        The app runs a **soft scheduler** on every reload:
-        - If the current time is past the schedule time (and not executed yet), it sends the ON/OFF command.
-        - Weekly schedules trigger once per day on the selected weekdays.
-
-        """
-    )
-
-    st.markdown(
-        """
-        ### 4. Data & billing model
-
-        - All telemetry is stored in MongoDB per device, with:
-          - timestamp
+        - Each plug writes records to MongoDB with:
+          - timestamp, device_id, device_name
           - voltage, current, power
           - cumulative energy_kWh
-        - Energy per day/month is computed as:
-          - `max(energy_kWh) - min(energy_kWh)` for that period.
-        - Bills are computed using Bangladesh residential slabs (EL-B-A),
-          based on the official SRO rates.
+        - Daily/monthly energy is computed from the difference in cumulative energy.
+        - Bills are computed using Bangladesh domestic slab rates.
 
-        ### 5. Contact
+        ### 4. Contact
 
-        For questions, improvements or collaboration, contact:  
+        For questions or improvements:  
         **Email:** `heyneeddev@gmail.com`
         """
     )
 
 
 # ------------------------------------------------------------------------------------
-# Router
+# Router + render
+
+render_top_nav()
 
 if st.session_state.page == "home":
     home_page()
