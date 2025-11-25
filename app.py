@@ -147,15 +147,31 @@ with st.sidebar:
     else:
         default_label = "🏠 Overview"
 
+    # What was selected before this rerun?
+    prev_choice = st.session_state.get("nav_choice", default_label)
+
+    # Radio sets the *new* choice
     choice = st.radio(
         "",
         options,
-        index=options.index(default_label),
+        index=options.index(prev_choice),
         key="nav_choice",
     )
 
-    if st.session_state.page != "device_detail":
+    # Did the user actually click a different sidebar item?
+    user_clicked_sidebar = (choice != prev_choice)
+
+    if user_clicked_sidebar:
+        # User explicitly chose a new page -> always go there
         st.session_state.page = label_to_page[choice]
+    else:
+        # User did not change sidebar; keep device_detail if we're on it
+        if st.session_state.page not in label_to_page.values():
+            # e.g., 'device_detail' -> do nothing, stay here
+            pass
+        else:
+            # For normal pages, keep page in sync with sidebar
+            st.session_state.page = label_to_page[choice]
 
     st.markdown("---")
     st.markdown("### 🗄️ Data backend")
@@ -165,6 +181,7 @@ with st.sidebar:
         st.caption("Check MONGODB_URI in secrets / .env")
     st.markdown("---")
     st.caption("FUB Building Energy Management Demo")
+
 
 
 # ------------------------------------------------------------------------------------
