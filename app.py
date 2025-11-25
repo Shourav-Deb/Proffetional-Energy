@@ -246,7 +246,7 @@ def render_top_nav():
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="top-nav-label">MAIN SECTIONS</div>', unsafe_allow_html=True)
+    st.markdown('<div class="top-nav-label">MAIN SECTIONS\n</div>', unsafe_allow_html=True)
 
     cols = st.columns([1, 1, 1, 1, 1, 2])
     nav_items = [
