@@ -374,7 +374,7 @@ def home_page():
                 fig = px.line(
                     ts,
                     x="timestamp",
-                    y=["power", "voltage"],
+                    y=["power_sum_W", "voltage_avg_V"],
                     labels={"value": "Value", "variable": "Metric"},
                 )
                 fig.update_layout(margin=dict(l=10, r=10, t=30, b=10), legend_title_text="")
@@ -412,7 +412,7 @@ def home_page():
             h_fig = px.line(
                 h_ts,
                 x="timestamp",
-                y=["power", "voltage"],
+                y=["power_sum_W", "voltage_avg_V"],
                 labels={"value": "Value", "variable": "Metric"},
                 title=f"Building profile for {hist_date.isoformat()}",
             )
