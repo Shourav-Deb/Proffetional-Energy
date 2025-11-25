@@ -1,0 +1,8 @@
+streamlit
+streamlit-autorefresh
+requests
+pandas
+python-dotenv
+pymongo
+plotly
+bson
