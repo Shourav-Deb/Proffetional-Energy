@@ -216,13 +216,13 @@ else:
     mongo_err = ""
 
 with st.sidebar:
-    st.markdown("### System status")
-    st.write("Mongo URI set:", bool(MONGODB_URI))
+    st.markdown("### System Status")
+    st.write("Mongo URI:", bool(MONGODB_URI))
     st.write("Connected:", mongo_ok)
     if not mongo_ok:
         st.caption("Check MONGODB_URI in secrets / .env")
     st.markdown("---")
-    st.caption("FUB BEMS · Realtime Tuya + MongoDB")
+    st.caption("FUB BEMS · Smart Monitoring System")
 
 
 run_due_schedules()
@@ -236,7 +236,7 @@ def render_top_nav():
           <div class="app-brand">
             <div class="logo-dot"></div>
             <div>
-              <div class="app-title">FUB Monitor System </div>
+              <div class="app-title">FUB Energy Monitor System </div>
               <div class="app-subtitle">Realtime Energy Monitoring For The FUB Building</div>
             </div>
           </div>
