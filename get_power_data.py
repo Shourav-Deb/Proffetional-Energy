@@ -4,12 +4,6 @@ from helpers import parse_metrics, build_doc
 
 
 def fetch_and_log_once(device_id: str, device_name: str = ""):
-    """
-    Fetch one reading from Tuya and store in MongoDB.
-
-    Returns a small dict for logging/debug:
-      { "ok": True/False, "row": <doc>, "raw": <raw tuya json> } or { "error": ... }
-    """
     token = get_token()
     raw = get_device_status(device_id, token)
 

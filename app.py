@@ -193,12 +193,10 @@ if "current_device_name" not in st.session_state:
 
 
 def go(page: str):
-    """Programmatic navigation to a main page."""
     st.session_state.page = page
 
 
 def go_device(device_id: str, device_name: str):
-    """Go to per-device dashboard."""
     st.session_state.current_device_id = device_id
     st.session_state.current_device_name = device_name
     st.session_state.page = "device_detail"

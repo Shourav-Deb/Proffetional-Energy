@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, time as dtime, timedelta
 from typing import List, Dict, Optional
 
-from bson import ObjectId  # installed with pymongo
+from bson import ObjectId
 from pymongo.errors import PyMongoError
 
 from helpers import dhaka_tz
@@ -47,13 +47,6 @@ def create_schedule(
     time_value: dtime,
     weekdays: Optional[List[int]] = None,
 ) -> Optional[str]:
-    """
-    kind: 'once' or 'weekly'
-    action: 'on' or 'off'
-    date_value: date for one-time schedule (can be None for weekly)
-    time_value: Python time object (local Dhaka time)
-    weekdays: list of ints [0..6] for weekly (Mon=0)
-    """
     _, schedules, _ = _get_db_and_collections()
     if schedules is None:
         return None
@@ -115,7 +108,6 @@ def delete_schedule(schedule_id: str) -> None:
 
 
 def _run_action(doc: Dict) -> None:
-    """Actually call Tuya to turn device ON/OFF and log."""
     _, _, logs = _get_db_and_collections()
     device_id = doc["device_id"]
     action = doc["action"]
@@ -143,15 +135,6 @@ def _run_action(doc: Dict) -> None:
 
 
 def run_due_schedules():
-    """
-    Soft scheduler: called on each app reload.
-
-    - For 'once' schedules: if now >= scheduled datetime and never run → run.
-    - For 'weekly' schedules: if today is in weekdays and we have crossed the time
-      and not run today → run.
-
-    This is not exact-to-the-second, but good enough for an academic BEMS demo.
-    """
     _, schedules, _ = _get_db_and_collections()
     if schedules is None:
         return
@@ -171,7 +154,7 @@ def run_due_schedules():
         except Exception:
             hh, mm = 0, 0
 
-        # Last run (timezone-aware)
+        # Last run
         last_run_at = doc.get("last_run_at")
         if last_run_at is not None and not isinstance(last_run_at, datetime):
             last_run_at = None
@@ -210,7 +193,7 @@ def run_due_schedules():
                 tzinfo=dhaka_tz,
             )
 
-            # Allow firing any time after sched_dt, but only once per day
+           
             if now_local >= sched_dt:
                 already_today = (
                     last_run_at is not None

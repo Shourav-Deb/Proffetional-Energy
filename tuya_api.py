@@ -6,10 +6,9 @@ import hashlib
 import requests
 from dotenv import load_dotenv
 
-# Load .env locally
+
 load_dotenv()
 
-# Try to read from Streamlit secrets if running in Streamlit Cloud
 try:
     import streamlit as st
     _secrets = dict(st.secrets)
@@ -18,7 +17,6 @@ except Exception:
 
 
 def _get_secret(name: str, default: str = "") -> str:
-    """Get secret from Streamlit or env, trimmed."""
     if name in _secrets:
         return str(_secrets[name]).strip()
     val = os.getenv(name, default)
@@ -32,7 +30,6 @@ HTTP_TIMEOUT = 15  # seconds
 
 
 def _make_sign(client_id, secret, method, url, access_token: str = "", body: str = ""):
-    """Create Tuya OpenAPI signature."""
     t = str(int(time.time() * 1000))
     message = client_id + access_token + t
     string_to_sign = "\n".join(
@@ -56,7 +53,6 @@ _token_cache = {"value": None, "ts": 0.0, "ttl": 55.0}
 
 
 def get_token() -> str:
-    """Get and cache Tuya access token for ~55s."""
     if not ACCESS_ID or not ACCESS_SECRET:
         raise RuntimeError("Tuya credentials missing (check TUYA_ACCESS_ID / TUYA_ACCESS_SECRET).")
 
@@ -83,7 +79,6 @@ def get_token() -> str:
 
 
 def get_device_status(device_id: str, token: str) -> dict:
-    """Call Tuya API: /devices/{id}/status."""
     path = f"/v1.0/devices/{device_id}/status"
     sign, t = _make_sign(ACCESS_ID, ACCESS_SECRET, "GET", path, token)
     headers = {
@@ -98,10 +93,6 @@ def get_device_status(device_id: str, token: str) -> dict:
 
 
 def control_device(device_id: str, token: str, code: str, value):
-    """
-    Send a control command to the device.
-    Example: code='switch_1', value=True / False
-    """
     path = f"/v1.0/devices/{device_id}/commands"
     body = json.dumps({"commands": [{"code": code, "value": value}]})
     sign, t = _make_sign(ACCESS_ID, ACCESS_SECRET, "POST", path, token, body)

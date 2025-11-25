@@ -6,37 +6,14 @@ import pandas as pd
 from tuya_api_mongo import range_docs, latest_docs
 from helpers import dhaka_tz
 
-# -----------------------------------------------------------------------------
-# Bangladesh residential tariff (EL-B-A, Low Tension Residential)
-# Source: GoB SRO, February 2024 (BD Electric Bill PDF)
-#
-# Lifeline (0–50 units): 4.633 Tk/kWh
-# Regular slabs (used when consumption > 50 units):
-#   0–75      : 5.26  Tk/kWh
-#   76–200    : 7.20  Tk/kWh
-#   201–300   : 7.59  Tk/kWh
-#   301–400   : 8.02  Tk/kWh
-#   401–600   : 12.67 Tk/kWh
-#   >600      : 14.61 Tk/kWh
-#
-# We ignore demand charge (Tk/kW) in this simplified academic model.
-# -----------------------------------------------------------------------------
-
 
 def _bd_domestic_bill(units_kwh: float) -> float:
-    """Compute bill in BDT using BD residential slabs.
-
-    - If total <= 50 kWh → lifeline rate for all units.
-    - Else → stepped residential slabs (0–75, 76–200, ...).
-    """
     u = max(0.0, float(units_kwh))
 
-    # Lifeline case
+
     if u <= 50:
         return round(u * 4.633, 2)
 
-    # Stepped slabs (excluding lifeline)
-    # (upper_limit, rate)
     slabs = [
         (75, 5.26),
         (200, 7.20),
@@ -63,14 +40,12 @@ def _bd_domestic_bill(units_kwh: float) -> float:
 
 
 def _units_between(df: pd.DataFrame) -> float:
-    """Return kWh used between min and max of cumulative energy_kWh."""
     if df.empty or "energy_kWh" not in df.columns:
         return 0.0
     return float(df["energy_kWh"].max() - df["energy_kWh"].min())
 
 
 def _day_window_local(now=None) -> Tuple[datetime, datetime]:
-    """Return start/end for 'today' in Dhaka, converted to naive UTC."""
     if now is None:
         now = datetime.now(dhaka_tz)
 
@@ -85,7 +60,6 @@ def _day_window_local(now=None) -> Tuple[datetime, datetime]:
 
 
 def _month_window_local(now=None) -> Tuple[datetime, datetime]:
-    """Return start/end of this month in Dhaka, converted to naive UTC."""
     if now is None:
         now = datetime.now(dhaka_tz)
 
@@ -100,13 +74,9 @@ def _month_window_local(now=None) -> Tuple[datetime, datetime]:
     return m_start, m_end
 
 
-# -----------------------------------------------------------------------------
-# Per-device billing & aggregation
-# -----------------------------------------------------------------------------
 
 
 def daily_monthly_for(device_id: str):
-    """Return (today_kwh, today_cost, month_kwh, month_cost) for a single device."""
     now = datetime.now(dhaka_tz)
 
     # Today
@@ -136,15 +106,7 @@ def _latest_power_voltage(device_id: str):
 
 
 def aggregate_totals_all_devices(devices: List[Dict]) -> tuple:
-    """
-    Return building/floor totals:
-      (total_power_now_W,
-       present_voltage_max_V,
-       today_kwh,
-       today_bill_bdt,
-       month_kwh,
-       month_bill_bdt)
-    """
+
     dev_ids = [d["id"] if isinstance(d, dict) else d for d in devices]
 
     # Instant totals
@@ -188,7 +150,6 @@ def aggregate_totals_all_devices(devices: List[Dict]) -> tuple:
 
 
 def aggregate_timeseries_24h(devices: List[Dict], resample_rule: str = "5T") -> pd.DataFrame:
-    """Return DataFrame [timestamp, power_sum_W, voltage_avg_V] for last 24h (UTC)."""
     dev_ids = [d["id"] if isinstance(d, dict) else d for d in devices]
     end = datetime.now()
     start = end - timedelta(hours=24)
@@ -228,7 +189,6 @@ def aggregate_timeseries_for_day(
     day_local,
     resample_rule: str = "5T",
 ) -> pd.DataFrame:
-    """Return [timestamp, power_sum_W, voltage_avg_V] for a given calendar day in Dhaka."""
     if not devices:
         return pd.DataFrame(columns=["timestamp", "power_sum_W", "voltage_avg_V"])
 

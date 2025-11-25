@@ -1,20 +1,10 @@
-"""
-data_collector.py
-
-Run this in the background (locally or on a server) to keep logging
-power readings to MongoDB every INTERVAL_SECONDS.
-
-Example:
-    python data_collector.py
-"""
-
 import time
 from datetime import datetime, timezone
 
 from helpers import load_devices_local, dhaka_tz
 from get_power_data import fetch_and_log_once
 
-INTERVAL_SECONDS = 10  # adjust as you like
+INTERVAL_SECONDS = 10 
 
 
 def main():
@@ -36,7 +26,7 @@ def main():
                 f"{loop_start_local.isoformat(timespec='seconds')} ===="
             )
 
-            # Reload devices each cycle in case devices.json changed
+           
             devices = load_devices_local()
 
             for d in devices:
