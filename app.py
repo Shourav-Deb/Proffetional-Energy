@@ -729,10 +729,10 @@ def device_detail_page():
 
 
 def reports_page():
-    st.markdown('<div class="big-title">Analytics & reports</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title">Analytics Reports</div>', unsafe_allow_html=True)
     st.info(
-        "This section is for high-level energy analytics and exporting data for reports. "
-        "You can extend this with CSV export, per-floor comparisons, or ML-based forecasts."
+        "This section is for high-level energy analytics and exporting data. Currently Under Maintanance."
+        
     )
 
 
@@ -769,7 +769,7 @@ def help_page():
         - Remove or clean up devices.
 
         **Analytics**  
-        - Placeholder for future advanced reports and exports.
+        - Placeholder for future advanced reports and exports. [on maintanance]
 
         **Device dashboard (Devices → Open dashboard)**  
         - **Today (live)**: latest power/voltage/current and recent power chart.  
