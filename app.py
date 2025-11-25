@@ -739,27 +739,26 @@ def reports_page():
 
 
 def help_page():
-    st.markdown('<div class="big-title">User manual — FUB BEMS</div>', unsafe_allow_html=True)
+    st.markdown('<div class="big-title"><h1>User Manual</h1></div>', unsafe_allow_html=True)
 
     st.markdown(
         """
-        ### 1. What this system does
+        ### 1. What This System Does?
 
-        This dashboard is a Building Energy Management System (BEMS) prototype for the FUB building.  
+        This dashboard is a Building Energy Management System (BEMS) for the FUB building. 
         It reads real-time power data from Tuya smart plugs, stores it in MongoDB, and calculates energy
-        and bills using Bangladesh electricity tariffs (domestic slabs).
+        and bills using Bangladesh Electricity Tariffs (domestic slabs).
 
-        **Knowledge contact:** `heyneeddev@gmail.com`
         """
     )
 
     st.markdown(
         """
-        ### 2. Main sections
+        ### 2. Main Sections
 
         **Overview**  
-        - Shows building total power, energy and bills (today + month).
-        - Floor-wise summaries (if devices are mapped with building/floor/room).
+        - Shows building total power, energy and bills (today + past month).
+        - Floor-Wise summaries (if devices are mapped with building/floor/room).
         - Live 24h chart and per-day history.
 
         **Devices**  
@@ -774,7 +773,7 @@ def help_page():
         **Analytics**  
         - Placeholder for future advanced reports and exports.
 
-        **Device dashboard (from Devices → Open dashboard)**  
+        **Device dashboard (Devices → Open dashboard)**  
         - **Today (live)**: latest power/voltage/current and recent power chart.  
         - **History & billing**: energy and BDT cost for today & this month, date-range chart.  
         - **Schedules**: configure one-time or weekly ON/OFF schedules.
@@ -783,9 +782,9 @@ def help_page():
 
     st.markdown(
         """
-        ### 3. Data and billing model
+        ### 3. Data & Billing Model
 
-        - Each plug writes records to MongoDB with:
+        - Each Plug Keeps Records:
           - timestamp, device_id, device_name
           - voltage, current, power
           - cumulative energy_kWh
@@ -794,13 +793,12 @@ def help_page():
 
         ### 4. Contact
 
-        For questions or improvements:  
+        For query or complains:  
         **Email:** `heyneeddev@gmail.com`
         """
     )
 
 
-# ------------------------------------------------------------------------------------
 # Router + render
 
 render_top_nav()
