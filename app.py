@@ -679,7 +679,7 @@ def device_detail_page():
 
     # -------------------- HISTORY & BILLING TAB --------------------
     with tabs[1]:
-        st.markdown("### Billing estimate (Bangladesh slabs)")
+        st.markdown("### Billing Estimate")
         d_units, d_cost, m_units, m_cost = daily_monthly_for(dev_id)
         b1, b2 = st.columns(2)
         with b1:
@@ -690,7 +690,7 @@ def device_detail_page():
             st.metric("This month (BDT)", f"{m_cost:.2f}")
         st.caption("Billing uses Bangladesh domestic slab rates (EL-B-A).")
 
-        st.markdown("### Historical analysis by date range")
+        st.markdown("### Historical Analysis by Date Range")
         c1, c2, c3 = st.columns(3)
         today = datetime.now().date()
         with c1:
@@ -721,7 +721,7 @@ def device_detail_page():
             )
             fig.update_layout(margin=dict(l=10, r=10, t=30, b=10))
             st.plotly_chart(fig, use_container_width=True)
-            st.expander("Raw data (tail)").dataframe(plot_df.tail(200))
+            st.expander("Raw Data").dataframe(plot_df.tail(200))
         else:
             st.info("No data in the selected range.")
 
