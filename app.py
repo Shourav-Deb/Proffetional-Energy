@@ -23,18 +23,17 @@ from schedules import (
     run_due_schedules,
 )
 
-# ------------------------------------------------------------------------------------
 # Page setup
 
 st.set_page_config(
-    page_title="FUB Smart BEMS",
+    page_title="Deb IoT Analyzer",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 DATA_DIR = Path("data")
 
-# Global styles (new premium layout)
+
 st.markdown(
     """
     <style>
@@ -196,7 +195,6 @@ if "current_device_name" not in st.session_state:
 def go(page: str):
     """Programmatic navigation to a main page."""
     st.session_state.page = page
-    # We let the next rerun render the new page
 
 
 def go_device(device_id: str, device_name: str):
@@ -206,10 +204,8 @@ def go_device(device_id: str, device_name: str):
     st.session_state.page = "device_detail"
 
 
-# ------------------------------------------------------------------------------------
-# Sidebar: system status (no navigation here anymore)
+# Sidebar: system status
 
-# Mongo health check
 try:
     _client = get_client()
     mongo_ok = _client is not None
@@ -228,28 +224,24 @@ with st.sidebar:
     st.markdown("---")
     st.caption("FUB BEMS · Realtime Tuya + MongoDB")
 
-# ------------------------------------------------------------------------------------
-# Soft scheduler (runs each app reload)
 
 run_due_schedules()
 
-# ------------------------------------------------------------------------------------
-# Top header + navigation (new UI, replaces sidebar nav)
+# Top header + navigation
 
 def render_top_nav():
-    # Header with logo + tagline
     st.markdown(
         """
         <div class="top-shell">
           <div class="app-brand">
             <div class="logo-dot"></div>
             <div>
-              <div class="app-title">FUB Smart BEMS</div>
-              <div class="app-subtitle">Realtime plug-level energy · Bangladesh billing · Floor aggregation</div>
+              <div class="app-title">FUB Monitor System </div>
+              <div class="app-subtitle">Realtime Energy Monitoring For The FUB Building</div>
             </div>
           </div>
           <div class="top-tagline">
-            Live Tuya data → MongoDB → Analytics dashboard
+            Powered by Shourav Deb
           </div>
         </div>
         """,
@@ -265,7 +257,7 @@ def render_top_nav():
         ("add_device", "Add device"),
         ("manage_devices", "Manage"),
         ("reports", "Analytics"),
-        # last col reserved for Help in a different row
+        
     ]
     current = st.session_state.get("page", "home")
 
@@ -284,7 +276,6 @@ def render_top_nav():
             st.rerun()
 
 
-# ------------------------------------------------------------------------------------
 # Pages
 
 def home_page():
@@ -292,7 +283,7 @@ def home_page():
 
     st.markdown('<div class="big-title">Building overview</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="subtitle">Live status and historical profile of the FUB building with Bangladesh billing.</div>',
+        '<div class="subtitle">Live status and historical profile of the FUB building with billing info.</div>',
         unsafe_allow_html=True,
     )
 
@@ -316,13 +307,13 @@ def home_page():
         c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown("<h3>Instant load</h3>", unsafe_allow_html=True)
+            st.markdown("<h3>Instant Load</h3>", unsafe_allow_html=True)
             st.markdown(f'<div class="value">{total_power_now:.1f} W</div>', unsafe_allow_html=True)
             st.caption(f"Max phase voltage: {present_voltage:.1f} V")
             st.markdown("</div>", unsafe_allow_html=True)
         with c2:
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown("<h3>Today (Bangladesh)</h3>", unsafe_allow_html=True)
+            st.markdown("<h3>Today Usage</h3>", unsafe_allow_html=True)
             st.markdown(
                 f'<div class="value">{today_kwh:.3f} kWh</div>', unsafe_allow_html=True
             )
@@ -371,7 +362,7 @@ def home_page():
         st.markdown("")
         col_l, col_r = st.columns([3, 1])
         with col_l:
-            st.markdown("#### Last 24 hours — building profile")
+            st.markdown("#### Last 24 hours (building profile)")
             ts = aggregate_timeseries_24h(devices, resample_rule="5T")
             if ts.empty:
                 st.info(
@@ -383,7 +374,7 @@ def home_page():
                 fig = px.line(
                     ts,
                     x="timestamp",
-                    y=["power_sum_W", "voltage_avg_V"],
+                    y=["power", "voltage"],
                     labels={"value": "Value", "variable": "Metric"},
                 )
                 fig.update_layout(margin=dict(l=10, r=10, t=30, b=10), legend_title_text="")
@@ -408,11 +399,11 @@ def home_page():
     with tabs[1]:
         today = datetime.now().date()
         hist_date = st.date_input(
-            "Select date (past days only)",
+            "Select date",
             value=today,
             max_value=today,
         )
-        st.caption("Future dates are disabled; past days load from MongoDB history.")
+        st.caption("Data will be cleared while extra load.")
 
         h_ts = aggregate_timeseries_for_day(devices, hist_date, resample_rule="15T")
         if h_ts.empty:
@@ -421,7 +412,7 @@ def home_page():
             h_fig = px.line(
                 h_ts,
                 x="timestamp",
-                y=["power_sum_W", "voltage_avg_V"],
+                y=["power", "voltage"],
                 labels={"value": "Value", "variable": "Metric"},
                 title=f"Building profile for {hist_date.isoformat()}",
             )
@@ -479,12 +470,12 @@ def add_device_page():
     )
 
     with st.form("add_device_form"):
-        name = st.text_input("Friendly name (e.g., FUB 401 - Lab AC)")
-        device_id = st.text_input("Tuya device ID")
-        building = st.text_input("Building code", value="FUB")
+        name = st.text_input("Friendly Name (e.g., FUB 402 - Lab AC)")
+        device_id = st.text_input("Tuya Device ID")
+        building = st.text_input("Building Code", value="FUB")
         floor = st.text_input("Floor (e.g., 4)")
         room = st.text_input("Room (e.g., 401)")
-        capacity = st.number_input("Room capacity (optional)", min_value=0, value=0, step=1)
+        capacity = st.number_input("Room Capacity (optional)", min_value=0, value=0, step=1)
         submitted = st.form_submit_button("Add device")
 
     if submitted:
@@ -636,7 +627,7 @@ def device_detail_page():
     )
     st.caption(f"{dev_id} · {building} · Floor {floor} · Room {room}")
 
-    # Fetch and log one reading on every load/refresh
+    
     try:
         fetch_and_log_once(dev_id, dev_name)
     except Exception as e:
